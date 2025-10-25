@@ -1,0 +1,187 @@
+﻿@model PracticaMVC_AdrianLayme3.Models.PedidoModel
+
+@{
+    ViewData["Title"] = "Editar Pedido";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0 text-light">EDITAR PEDIDO</h2>
+        <div class="d-flex gap-2">
+            <a class="btn btn-sm btn-outline-secondary" asp-action="Index">↩️ Volver</a>
+        </div>
+    </div>
+
+    <div class="card p-3 card-tabla">
+        <form asp-action="Edit" method="post" class="row g-3 w-100" novalidate>
+            <input type="hidden" asp-for="Id" />
+            <div class="col-12">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label asp-for="FechaPedido" class="form-label m-0">@Html.DisplayNameFor(m => m.FechaPedido)</label>
+                <input asp-for="FechaPedido"
+                       class="form-control"
+                       type="datetime-local"
+                       min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")"
+                       max="2100-12-31T23:59"
+                       step="60" />
+                <div class="small text-secondary">Formato: YYYY-MM-DD HH:mm (sin segundos).</div>
+                <span asp-validation-for="FechaPedido" class="text-danger"></span>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label m-0">@Html.DisplayNameFor(m => m.IdCliente)</label>
+                <div class="input-group">
+                    <input id="clienteNombre" class="form-control" type="text" value="@(Model?.Cliente?.Nombre ?? "")" placeholder="Seleccione el cliente…" readonly />
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalBuscarCliente">🔎 Buscar</button>
+                </div>
+                <input type="hidden" asp-for="IdCliente" id="IdCliente" />
+                <span asp-validation-for="IdCliente" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Direccion" class="form-label m-0">
+                    @Html.DisplayNameFor(m => m.Direccion)
+                    <span id="contador_dir" class="badge rounded-pill bg-secondary ms-2">350 restantes</span>
+                </label>
+                <input asp-for="Direccion" id="Direccion" class="form-control" required minlength="7" maxlength="350" />
+                <span asp-validation-for="Direccion" class="text-danger"></span>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label asp-for="MontoTotal" class="form-label m-0">@Html.DisplayNameFor(m => m.MontoTotal)</label>
+                <input asp-for="MontoTotal" class="form-control" readonly />
+                <div class="small text-secondary">Se recalcula automáticamente por los detalles.</div>
+                <span asp-validation-for="MontoTotal" class="text-danger"></span>
+            </div>
+
+            <div class="col-12 d-flex justify-content-center gap-2 mt-2">
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+                <button type="submit" class="btn btn-success">💾 Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Buscar Cliente (solo para EDIT) -->
+<div class="modal fade" id="modalBuscarCliente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="background:#0f1113; color:#f8f9fa; border:1px solid #2b2f33;">
+            <div class="modal-header" style="background: linear-gradient(90deg, #2c3e50, #6c5ce7);">
+                <h5 class="modal-title">Seleccionar cliente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-buscar-cli" class="d-flex flex-wrap align-items-center gap-2 mb-3" onsubmit="return false;">
+                    <label class="m-0">Buscar</label>
+                    <input id="cli-q" class="form-control form-control-sm" type="search" placeholder="Nombre o CI…" style="width: 240px;" maxlength="100" />
+                    <select id="cli-modo" class="form-select form-select-sm" style="width: 140px;">
+                        <option value="nombre">Por nombre</option>
+                        <option value="ci">Por carnet</option>
+                    </select>
+                    <label class="m-0">Por página</label>
+                    <input id="cli-cant" class="form-control form-control-sm" type="number" min="1" max="99" value="5" style="width: 70px;" />
+                    <button type="button" id="cli-aplicar" class="btn btn-sm btn-primary">👁️ Aplicar</button>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover text-center mb-2">
+                        <thead>
+                            <tr>
+                                <th class="text-white">Nombre</th>
+                                <th class="text-white">CI</th>
+                                <th class="text-white">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cli-tbody">
+                            <tr><td colspan="3" class="text-white">Sin resultados.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <nav>
+                    <ul id="cli-pag" class="pagination justify-content-center flex-wrap gap-1 mb-0"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        (() => {
+            // Contador de dirección
+            const dir = document.getElementById('Direccion');
+            const badgeDir = document.getElementById('contador_dir');
+            const bindLeft = (el, badge, max) => {
+                if (!el || !badge) return;
+                const up = () => { badge.textContent = (max - (el.value || '').length) + ' restantes'; };
+                el.addEventListener('input', up); up();
+            };
+            bindLeft(dir, badgeDir, 350);
+
+            // Modal de clientes (API + render)
+            const api = {
+                load: async (pagina = 1) => {
+                    const q = document.getElementById('cli-q').value || '';
+                    const modo = document.getElementById('cli-modo').value || 'nombre';
+                    const cant = Math.max(1, Math.min(99, parseInt(document.getElementById('cli-cant').value || '5')));
+                    const url = `@Url.Action("BuscarClientes", "Pedido")?q=${encodeURIComponent(q)}&modo=${encodeURIComponent(modo)}&pagina=${pagina}&cantidadRegistrosPorPagina=${cant}`;
+                    const r = await fetch(url);
+                    return await r.json();
+                },
+                renderRows: (items) => {
+                    const tbody = document.getElementById('cli-tbody');
+                    tbody.innerHTML = '';
+                    if (!items || items.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="3" class="text-white">Sin resultados.</td></tr>`;
+                        return;
+                    }
+                    for (const it of items) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="text-white">${it.nombre}</td>
+                            <td class="text-white">${it.ci}</td>
+                            <td><button type="button" class="btn btn-sm btn-success">➕ Agregar</button></td>
+                        `;
+                        tr.querySelector('button').onclick = () => {
+                            document.getElementById('IdCliente').value = it.id;
+                            document.getElementById('clienteNombre').value = it.nombre;
+                            if (it.direccion && !dir.value) dir.value = it.direccion;
+                            bootstrap.Modal.getInstance(document.getElementById('modalBuscarCliente')).hide();
+                        };
+                        tbody.appendChild(tr);
+                    }
+                },
+                renderPag: (data) => {
+                    const pag = document.getElementById('cli-pag'); pag.innerHTML = '';
+                    const add = (enabled, text, page, active = false) => {
+                        const li = document.createElement('li');
+                        li.className = `page-item ${enabled ? '' : 'disabled'} ${active ? 'active' : ''}`;
+                        const a = document.createElement('a'); a.className = 'page-link'; a.href = '#'; a.textContent = text;
+                        a.onclick = (e) => { e.preventDefault(); if (enabled) api.load(page).then(api.update); };
+                        li.appendChild(a); pag.appendChild(li);
+                    };
+                    add(data.hasPrev, '« Anterior', data.pagina - 1);
+                    add(true, '1', 1, data.pagina === 1);
+                    if (data.pageWindowStart > 1) pag.insertAdjacentHTML('beforeend','<li class="page-item disabled"><span class="page-link">…</span></li>');
+                    for (let i = data.pageWindowStart; i <= data.pageWindowEnd; i++) { if (i === 1) continue; add(true, String(i), i, data.pagina === i); }
+                    if (data.pageWindowEnd < data.totalPaginas) pag.insertAdjacentHTML('beforeend','<li class="page-item disabled"><span class="page-link">…</span></li>');
+                    add(data.hasNext, 'Siguiente »', data.pagina + 1);
+                },
+                update: (d) => { api.renderRows(d.items); api.renderPag(d); }
+            };
+
+            document.getElementById('cli-aplicar').onclick = async () => api.load(1).then(api.update);
+            document.getElementById('modalBuscarCliente').addEventListener('shown.bs.modal', () => {
+                api.load(1).then(api.update);
+                document.getElementById('cli-q').focus();
+            });
+        })();
+    </script>
+}

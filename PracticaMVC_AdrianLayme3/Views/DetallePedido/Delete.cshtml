@@ -1,0 +1,76 @@
+﻿@model PracticaMVC_AdrianLayme3.Models.DetallePedidoModel
+
+@{
+    ViewData["Title"] = "Eliminar Detalle de Pedido";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="m-0 text-light">ELIMINAR DETALLE</h2>
+            <div class="text-secondary small">Pedido #@Model.IdPedido — Cliente: @Model.Pedido?.Cliente?.Nombre</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-sm btn-outline-secondary" asp-action="Index" asp-route-pedidoId="@Model.IdPedido">↩️ Volver</a>
+        </div>
+    </div>
+
+    <div class="card p-3 card-tabla">
+        <div class="mb-3 alert alert-warning" role="alert">
+            Esta acción es <strong>permanente</strong>. El detalle no podrá recuperarse.
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover text-center mb-3">
+                <thead>
+                    <tr>
+                        <th class="text-white">Producto</th>
+                        <th class="text-white">Precio Unitario (Bs)</th>
+                        <th class="text-white">Cantidad</th>
+                        <th class="text-white">Subtotal (Bs)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-white">@Model.Producto?.Nombre</td>
+                        <td class="text-white">@Model.PrecioUnitario.ToString("0.00")</td>
+                        <td class="text-white">@Model.Cantidad</td>
+                        <td class="text-white">@Model.Subtotal.ToString("0.00")</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-center gap-2">
+            <a class="btn btn-outline-secondary" asp-action="Index" asp-route-pedidoId="@Model.IdPedido">Cancelar</a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalConfirmarEliminar">
+                🗑️ Eliminar Detalle
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmación -->
+<div class="modal fade" id="modalConfirmarEliminar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#0f1113; color:#f8f9fa; border:1px solid #2b2f33;">
+            <div class="modal-header" style="background: linear-gradient(90deg, #2c3e50, #6c5ce7);">
+                <h5 class="modal-title">Confirmar eliminación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                ¿Seguro que deseas eliminar el detalle del producto <strong>@Model.Producto?.Nombre</strong>?<br />
+                Esta acción es permanente y no podrás recuperar la información.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form asp-action="Delete" method="post" class="m-0">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger">Eliminar definitivamente</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts { }

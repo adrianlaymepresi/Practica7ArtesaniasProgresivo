@@ -1,0 +1,133 @@
+﻿@model PracticaMVC_AdrianLayme3.Models.ClienteModel
+
+@{
+    ViewData["Title"] = "Editar Cliente";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0 text-light">EDITAR CLIENTE</h2>
+        <div class="d-flex gap-2">
+            <a class="btn btn-sm btn-outline-secondary" asp-action="Index">↩️ Volver</a>
+        </div>
+    </div>
+
+    <div class="card p-3 card-tabla">
+        <form asp-action="Edit" method="post" class="row g-3 w-100" novalidate>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="col-12">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Nombre" class="form-label m-0">
+                    @Html.DisplayNameFor(m => m.Nombre)
+                    <span id="contador_nombre" class="badge rounded-pill bg-secondary ms-2">120 restantes</span>
+                </label>
+                <textarea asp-for="Nombre"
+                          class="form-control"
+                          maxlength="120"
+                          rows="1"
+                          required
+                          minlength="8"
+                          style="overflow:hidden; white-space:pre-wrap; overflow-wrap:anywhere; resize:none;"
+                          placeholder="Nombre completo"></textarea>
+                <span asp-validation-for="Nombre" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="CarnetIdentidad" class="form-label m-0">
+                    @Html.DisplayNameFor(m => m.CarnetIdentidad)
+                    <span id="contador_ci" class="badge rounded-pill bg-secondary ms-2">9 restantes</span>
+                </label>
+                <input asp-for="CarnetIdentidad"
+                       class="form-control"
+                       type="text"
+                       inputmode="numeric"
+                       pattern="\d*"
+                       maxlength="9"
+                       required
+                       oninput="this.value=this.value.replace(/\D/g,'').slice(0,9); actualizarCiContador();" />
+                <span asp-validation-for="CarnetIdentidad" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Email" class="form-label m-0">
+                    @Html.DisplayNameFor(m => m.Email)
+                    <span id="contador_email" class="badge rounded-pill bg-secondary ms-2">320 restantes</span>
+                </label>
+                <input asp-for="Email"
+                       class="form-control"
+                       type="email"
+                       required
+                       minlength="7"
+                       maxlength="320"
+                       placeholder="correo@ejemplo.com" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Direccion" class="form-label m-0">
+                    @Html.DisplayNameFor(m => m.Direccion)
+                    <span id="contador_direccion" class="badge rounded-pill bg-secondary ms-2">350 restantes</span>
+                </label>
+                <input asp-for="Direccion"
+                       class="form-control"
+                       required
+                       minlength="7"
+                       maxlength="350"
+                       placeholder="Calle y número" />
+                <span asp-validation-for="Direccion" class="text-danger"></span>
+            </div>
+
+            <div class="col-12 d-flex justify-content-center gap-2 mt-2">
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+                <button type="submit" class="btn btn-success">💾 Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        (() => {
+            const nombre = document.getElementById('Nombre');
+            const email = document.getElementById('Email');
+            const direccion = document.getElementById('Direccion');
+            const ci = document.getElementById('CarnetIdentidad');
+
+            const badgeNombre = document.getElementById('contador_nombre');
+            const badgeEmail = document.getElementById('contador_email');
+            const badgeDireccion = document.getElementById('contador_direccion');
+            const badgeCi = document.getElementById('contador_ci');
+
+            const bindLeft = (el, badge, max) => {
+                if (!el || !badge) return;
+                const up = () => { badge.textContent = (max - (el.value || '').length) + ' restantes'; };
+                el.addEventListener('input', up); up();
+            };
+
+            const autoHeight = (ta) => {
+                if (!ta) return;
+                const grow = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+                ta.addEventListener('input', grow); grow();
+            };
+
+            window.actualizarCiContador = function () {
+                if (!ci || !badgeCi) return;
+                badgeCi.textContent = (9 - (ci.value || '').length) + ' restantes';
+            };
+
+            bindLeft(nombre, badgeNombre, 120);
+            bindLeft(email, badgeEmail, 320);
+            bindLeft(direccion, badgeDireccion, 350);
+            autoHeight(nombre);
+            actualizarCiContador();
+            if (ci) ci.addEventListener('input', actualizarCiContador);
+        })();
+    </script>
+}
